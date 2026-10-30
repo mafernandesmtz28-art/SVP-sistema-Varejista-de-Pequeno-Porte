@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SVP - Comércio Varejista de Pequeno Porte</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col">
+
+  <!-- TOP HEADER -->
+  <header class="bg-slate-900 text-white shadow-lg sticky top-0 z-50 border-b border-blue-900/50">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-4">
+      <div class="flex items-center space-x-3">
+        <div class="bg-blue-600 p-2 rounded-lg text-white font-bold text-xl flex items-center justify-center w-10 h-10 shadow-md shadow-blue-600/30">
+          <i class="fa-solid font-bold">SVP</i>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold leading-tight text-white">Sistema Varejista de Pequeno Porte</h1>
+          <p class="text-xs text-blue-300/80">Comércio Varejista - Gestão Integrada</p>
+        </div>
+      </div>
+
+      <!-- User Role Selector (Simulating logged actor) -->
+      <div class="flex items-center space-x-3 bg-slate-800/80 p-1.5 rounded-xl border border-blue-900/60">
+        <span class="text-xs text-blue-200/70 font-medium pl-2 hidden sm:inline">Perfil Ativo:</span>
+        <select id="userRoleSelect" onchange="switchUserRole(this.value)" class="bg-slate-900 text-blue-100 text-sm font-semibold rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer border border-blue-800/50">
+          <option value="vendedor">👨‍💼 Vendedor (João Pereira)</option>
+          <option value="caixa">💰 Operador de Caixa (Ana Costa)</option>
+          <option value="estoquista">📦 Estoquista (Carlos Lima)</option>
+          <option value="admin">⚙️ Administrador (Fernanda Souza)</option>
+          <option value="cliente">🛒 Cliente (Maria Silva)</option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <!-- NAVIGATION TABS -->
+  <nav class="bg-slate-900/90 backdrop-blur border-b border-blue-900/40 shadow-md sticky top-[62px] z-40">
+    <div class="max-w-7xl mx-auto px-4">
+      <div class="flex space-x-2 overflow-x-auto py-2.5 scrollbar-none" id="navTabs">
+        <!-- Dynamic Nav Items Based on Role -->
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN CONTENT AREA -->
+  <main class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-6">
+
+    <!-- ALERT / NOTIFICATION BANNER -->
+    <div id="toastNotification" class="hidden fixed bottom-5 right-5 z-50 bg-slate-900 text-white px-5 py-3 rounded-xl shadow-2xl border border-blue-500/50 flex items-center space-x-3 transition-all duration-300">
+      <div id="toastIcon" class="text-emerald-400"><i class="fa-solid fa-circle-check text-xl"></i></div>
+      <div id="toastMessage" class="text-sm font-medium">Ação realizada com sucesso!</div>
+    </div>
+
+    <!-- VIEW 1: REGISTRAR VENDA / ATENDER CLIENTE (Vendedor) -->
+    <section id="view-venda" class="view-panel space-y-6">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900/90 p-5 rounded-2xl shadow-lg border border-blue-900/40">
+        <div>
+          <h2 class="text-xl font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-cash-register text-blue-400"></i> Registrar Venda & Atender Cliente
+          </h2>
+          <p class="text-xs text-blue-200/70">Selecione os produtos solicitados pelo cliente para criar um pedido de venda.</p>
+        </div>
+        <div class="flex items-center gap-2 bg-blue-950/80 text-blue-200 px-3 py-1.5 rounded-lg border border-blue-800/60 text-sm font-semibold">
+          <i class="fa-solid fa-user-tag text-blue-400"></i> Atendimento: Maria Silva (Cliente 001)
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Product Selection Catalog -->
+        <div class="lg:col-span-2 bg-slate-900/90 p-5 rounded-2xl shadow-lg border border-blue-900/40 space-y-4">
+          <div class="flex items-center justify-between gap-4">
+            <h3 class="font-bold text-white">Consulta de Produtos em Estoque</h3>
+            <div class="relative w-64">
+              <input type="text" id="searchProductInput" onkeyup="filterProducts()" placeholder="Buscar produto..." class="w-full text-sm pl-9 pr-3 py-1.5 bg-slate-950 text-blue-100 border border-blue-800/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-slate-500">
+              <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-blue-400 text-xs"></i>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[460px] overflow-y-auto pr-1" id="salesProductGrid">
+            <!-- Product Cards generated dynamically -->
+          </div>
+        </div>
+
+        <!-- Current Order / ItemVenda -->
+        <div class="bg-slate-900/90 p-5 rounded-2xl shadow-lg border border-blue-900/40 flex flex-col justify-between">
+          <div>
+            <div class="flex justify-between items-center pb-3 mb-3 border-b border-blue-900/40">
+              <h3 class="font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-cart-shopping text-blue-400"></i> Carrinho de Venda
+              </h3>
+              <span class="text-xs font-mono bg-blue-950 text-blue-300 border border-blue-800/50 px-2 py-1 rounded">Venda #<span id="currentSaleId">001</span></span>
+            </div>
+
+            <div class="space-y-3 max-h-[300px] overflow-y-auto pr-1" id="orderItemsList">
+              <!-- Cart Items -->
+            </div>
+          </div>
+
+          <div class="pt-4 border-t border-blue-900/40 space-y-3 mt-4">
+            <div class="flex justify-between text-sm">
+              <span class="text-slate-400">Subtotal:</span>
+              <span class="font-medium text-slate-200" id="saleSubtotal">R$ 0,00</span>
+            </div>
+            <div class="flex justify-between text-lg font-bold text-white">
+              <span>Total da Venda:</span>
+              <span class="text-blue-400" id="saleTotal">R$ 0,00</span>
+            </div>
+
+            <button onclick="forwardToCashier()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2.5 rounded-xl transition flex items-center justify-center gap-2 shadow-lg shadow-blue-600/30">
+              <i class="fa-solid fa-paper-plane"></i> Enviar ao Caixa para Pagamento
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 2: RECEBER PAGAMENTO & FINALIZAR VENDA (Operador de Caixa) -->
+    <section id="view-caixa" class="view-panel space-y-6 hidden">
+      <div class="bg-slate-900/90 p-5 rounded-2xl shadow-lg border border-blue-900/40">
+        <h2 class="text-xl font-bold text-white flex items-center gap-2">
+          <i class="fa-solid fa-cash-register text-amber-400"></i> Operador de Caixa - Pagamento & Comprovante
+        </h2>
+        <p class="text-xs text-blue-200/70">Receba o pagamento das vendas registradas pelos vendedores e emita o comprovante.</p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Vendas Pendentes de Pagamento -->
+        <div class="bg-slate-900/90 p-5 rounded-2xl shadow-lg border border-blue-900/40 space-y-4">
+          <h3 class="font-bold text-white flex items-center justify-between">
+            <span>Vendas Aguardando Pagamento</span>
+            <span class="bg-amber-950/80 text-amber-300 border border-amber-800/60 text-xs px-2.5 py-0.5 rounded-full font-semibold" id="pendingSalesCount">0 pendentes</span>
+          </h3>
+          <div class="space-y-3" id="pendingSalesList">
+            <!-- Pending sales items -->
+          </div>
+        </div>
+
+        <!-- Checkout / Payment Panel -->
+        <div class="bg-slate-900/90 p-5 rounded-2xl shadow-lg border border-blue-900/40 space-y-5">
+          <h3 class="font-bold text-white border-b border-blue-900/40 pb-3">Processar Pagamento (Pagamento 001)</h3>
+
+          <div id="activePaymentDetails" class="space-y-4">
+            <div class="p-4 bg-slate-950 rounded-xl border border-blue-900/40 space-y-2">
+              <div class="flex justify-between text-sm">
+                <span class="text-slate-400">Cliente:</span>
+                <span class="font-semibold text-white" id="payClientName">Maria Silva</span>
+              </div>
+              <div class="flex justify-between text-sm">
+                <span class="text-slate-400">Vendedor Responsável:</span>
+                <span class="font-semibold text-white" id="payVendorName">João Pereira</span>
+              </div>
+              <div class="flex justify-between text-base font-bold pt-2 border-t border-blue-900/40">
+                <span class="text-slate-200">Valor Total a Pagar:</span>
+                <span class="text-blue-400 text-lg" id="payTotalAmount">R$ 0,00</span>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-blue-300/80 uppercase mb-2">Forma de Pagamento (+forma: String)</label>
+              <div class="grid grid-cols-3 gap-3">
+                <button onclick="selectPaymentMethod('Cartão')" class="pay-method-btn border-2 border-blue-500 bg-blue-950/60 text-blue-200 font-semibold p-3 rounded-xl text-center text-xs space-y-1">
+                  <i class="fa-solid fa-credit-card text-lg block text-blue-400"></i> Cartão
+                </button>
+                <button onclick="selectPaymentMethod('PIX')" class="pay-method-btn border-2 border-blue-900/50 bg-slate-950 text-slate-300 font-semibold p-3 rounded-xl text-center text-xs space-y-1 hover:border-blue-700">
+                  <i class="fa-solid fa-qrcode text-lg block text-blue-400"></i> PIX
+                </button>
+                <button onclick="selectPaymentMethod('Dinheiro')" class="pay-method-btn border-2 border-blue-900/50 bg-slate-950 text-slate-300 font-semibold p-3 rounded-xl text-center text-xs space-y-1 hover:border-blue-700">
+                  <i class="fa-solid fa-money-bill-wave text-lg block text-blue-400"></i> Dinheiro
+                </button>
+              </div>
+            </div>
+
+            <button onclick="confirmPaymentAndEmitReceipt()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition flex items-center justify-center gap-2 shadow-lg shadow-blue-600/30">
+              <i class="fa-solid fa-check-circle"></i> Confirmar Pagamento & Emitir Comprovante
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 3: ESTOQUISTA (Estoque e Entrada/Saída) -->
+    <section id="view-estoque" class="view-panel space-y-6 hidden">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-900/90 p-5 rounded-2xl shadow-lg border border-blue-900/40">
+        <div>
+          <h2 class="text-xl font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-boxes-stacked text-blue-400"></i> Controle de Estoque (Estoquista)
+          </h2>
+          <p class="text-xs text-blue-200/70">Gerencie a quantidade em estoque, registrando entradas e saídas de produtos.</p>
+        </div>
+        <button onclick="openStockModal()" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-4 py-2 rounded-xl text-sm transition flex items-center gap-2 shadow-lg shadow-blue-600/30">
+          <i class="fa-solid fa-plus"></i> Registrar Entrada de Estoque
+        </button>
+      </div>
+
+      <!-- Stock Table -->
+      <div class="bg-slate-900/90 rounded-2xl shadow-lg border border-blue-900/40 overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-sm">
+            <thead>
+              <tr class="bg-slate-950 text-blue-300 font-semibold border-b border-blue-900/40 text-xs uppercase">
+                <th class="p-4">ID Produto</th>
+                <th class="p-4">Nome do Produto</th>
+                <th class="p-4">Preço Unitário</th>
+                <th class="p-4">Qtd. em Estoque</th>
+                <th class="p-4">Status</th>
+                <th class="p-4 text-right">Ações de Movimentação</th>
+              </tr>
+            </thead>
+            <tbody id="stockTableBody" class="divide-y divide-blue-900/30">
+              <!-- Stock rows populated dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 4: ADMINISTRAÇÃO & RELATÓRIOS -->
+    <section id="view-admin" class="view-panel space-y-6 hidden">
+      <div class="bg-slate-900/90 p-5 rounded-2xl shadow-lg border border-blue-900/40">
+        <h2 class="text-xl font-bold text-white flex items-center gap-2">
+          <i class="fa-solid fa-user-shield text-blue-400"></i> Painel do Administrador
+        </h2>
+        <p class="text-xs text-blue-200/70">Gerencie usuários, cadastre novos produtos e acompanhe relatórios do sistema SVP.</p>
+      </div>
+
+      <!-- Sub Tabs Admin -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Quick Stats -->
+        <div class="bg-gradient-to-br from-blue-900 to-blue-950 border border-blue-800/60 text-white p-5 rounded-2xl shadow-lg">
+          <span class="text-xs font-semibold text-blue-300 uppercase">Total de Vendas Realizadas</span>
+          <h3 class="text-3xl font-extrabold mt-2 text-white" id="adminTotalSalesValue">R$ 185,90</h3>
+          <p class="text-xs text-blue-300/80 mt-1" id="adminTotalSalesCount">1 vendas concluídas</p>
+        </div>
+        <div class="bg-gradient-to-br from-slate-900 to-blue-950 border border-blue-800/60 text-white p-5 rounded-2xl shadow-lg">
+          <span class="text-xs font-semibold text-blue-300 uppercase">Produtos Cadastrados</span>
+          <h3 class="text-3xl font-extrabold mt-2 text-white" id="adminTotalProductsCount">10</h3>
+          <p class="text-xs text-blue-300/80 mt-1">Produtos no catálogo</p>
+        </div>
+        <div class="bg-gradient-to-br from-slate-900 to-slate-950 border border-blue-800/60 text-white p-5 rounded-2xl shadow-lg">
+          <span class="text-xs font-semibold text-blue-300 uppercase">Usuários Ativos</span>
+          <h3 class="text-3xl font-extrabold mt-2 text-white">4 Usuários</h3>
+          <p class="text-xs text-blue-300/80 mt-1">1 Vendedor, 1 Caixa, 1 Estoquista, 1 Admin</p>
+        </div>
+      </div>
+
+      <!-- Gerenciamento de Produtos -->
+      <div class="bg-slate-900/90 p-5 rounded-2xl shadow-lg border border-blue-900/40 space-y-4">
+        <div class="flex justify-between items-center border-b border-blue-900/40 pb-3">
+          <div>
+            <h3 class="font-bold text-white">Gerenciar Produtos (+gerenciarProdutos())</h3>
+            <p class="text-xs text-blue-200/70">Cadastre novos produtos no catálogo com marca, categoria e preço</p>
+          </div>
+          <button onclick="openProductModal()" class="text-xs bg-blue-600 hover:bg-blue-500 text-white px-3 py-2 rounded-lg font-semibold transition flex items-center gap-1.5 shadow-md shadow-blue-600/30">
+            <i class="fa-solid fa-plus"></i> Novo Produto
+          </button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="bg-slate-950 text-blue-300 font-semibold border-b border-blue-900/40 uppercase">
+                <th class="p-3">ID</th>
+                <th class="p-3">Produto</th>
+                <th class="p-3">Marca</th>
+                <th class="p-3">Categoria</th>
+                <th class="p-3">Preço</th>
+                <th class="p-3">Estoque</th>
+                <th class="p-3 text-right">Ação</th>
+              </tr>
+            </thead>
+            <tbody id="adminProductsTableBody" class="divide-y divide-blue-900/30">
+              <!-- Dynamically rendered -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Gerenciar Usuários -->
+        <div class="bg-slate-900/90 p-5 rounded-2xl shadow-lg border border-blue-900/40 space-y-4">
+          <div class="flex justify-between items-center border-b border-blue-900/40 pb-3">
+            <h3 class="font-bold text-white">Gerenciar Usuários (+autenticar())</h3>
+            <button onclick="openUserModal()" class="text-xs bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg font-semibold transition shadow-md shadow-blue-600/30">
+              + Novo Usuário
+            </button>
+          </div>
+          <div class="space-y-3" id="usersList">
+            <!-- Users list populated dynamically -->
+          </div>
+        </div>
+
+        <!-- Relatórios de Vendas -->
+        <div class="bg-slate-900/90 p-5 rounded-2xl shadow-lg border border-blue-900/40 space-y-4">
+          <div class="flex justify-between items-center border-b border-blue-900/40 pb-3">
+            <h3 class="font-bold text-white">Emitir Relatórios de Vendas</h3>
+            <button onclick="exportSalesReport()" class="text-xs bg-slate-800 hover:bg-slate-700 text-blue-200 border border-blue-800/60 px-3 py-1.5 rounded-lg font-semibold transition flex items-center gap-1.5">
+              <i class="fa-solid fa-file-export text-blue-400"></i> Gerar Relatório
+            </button>
+          </div>
+          <div class="space-y-3 max-h-[300px] overflow-y-auto" id="salesReportsList">
+            <!-- Reports list -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 5: PORTAL DO CLIENTE (Maria Silva) -->
+    <section id="view-cliente" class="view-panel space-y-6 hidden">
+      <div class="bg-slate-900/90 p-5 rounded-2xl shadow-lg border border-blue-900/40">
+        <h2 class="text-xl font-bold text-white flex items-center gap-2">
+          <i class="fa-solid fa-user-check text-blue-400"></i> Portal do Cliente - Consultar Produtos
+        </h2>
+        <p class="text-xs text-blue-200/70">Cliente ativo: <strong class="text-white">Maria Silva</strong> (idCliente: 001, Tel: (31) 98765-4321, Rua das Flores, 123)</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="clientCatalogGrid">
+        <!-- Client catalog cards -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODALS -->
+  <!-- New Product Modal -->
+  <div id="productModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-blue-900/60 rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4">
+      <h3 class="font-bold text-white text-lg flex items-center gap-2">
+        <i class="fa-solid fa-cart-plus text-blue-400"></i> Cadastrar Novo Produto
+      </h3>
+      <div>
+        <label class="block text-xs font-semibold text-blue-200/80 mb-1">Nome do Produto</label>
+        <input type="text" id="newProdNome" placeholder="Ex: Arroz Tipo 1 5kg" class="w-full text-sm border border-blue-900/60 rounded-lg p-2.5 bg-slate-950 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-slate-600">
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-semibold text-blue-200/80 mb-1">Marca</label>
+          <input type="text" id="newProdMarca" placeholder="Ex: Tio João" class="w-full text-sm border border-blue-900/60 rounded-lg p-2.5 bg-slate-950 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-slate-600">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-blue-200/80 mb-1">Categoria</label>
+          <select id="newProdCategoria" class="w-full text-sm border border-blue-900/60 rounded-lg p-2.5 bg-slate-950 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="Alimentos">Alimentos</option>
+            <option value="Bebidas">Bebidas</option>
+            <option value="Higiene & Limpeza">Higiene & Limpeza</option>
+            <option value="Padaria & Laticínios">Padaria & Laticínios</option>
+            <option value="Hortifrúti">Hortifrúti</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-semibold text-blue-200/80 mb-1">Preço Unitário (R$)</label>
+          <input type="number" step="0.01" id="newProdPreco" placeholder="25.90" class="w-full text-sm border border-blue-900/60 rounded-lg p-2.5 bg-slate-950 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-slate-600">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-blue-200/80 mb-1">Estoque Inicial</label>
+          <input type="number" id="newProdEstoque" value="20" min="0" class="w-full text-sm border border-blue-900/60 rounded-lg p-2.5 bg-slate-950 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+      </div>
+      <div class="flex justify-end space-x-3 pt-3">
+        <button onclick="closeProductModal()" class="px-4 py-2 text-xs font-semibold text-slate-400 hover:bg-slate-800 rounded-lg">Cancelar</button>
+        <button onclick="saveNewProduct()" class="px-4 py-2 text-xs font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-500 shadow-md shadow-blue-600/30">Salvar Produto</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stock Entry Modal -->
+  <div id="stockModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-blue-900/60 rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4">
+      <h3 class="font-bold text-white text-lg flex items-center gap-2">
+        <i class="fa-solid fa-box text-blue-400"></i> Registrar Entrada de Estoque
+      </h3>
+      <div>
+        <label class="block text-xs font-semibold text-blue-200/80 mb-1">Selecione o Produto</label>
+        <select id="stockProductSelect" class="w-full text-sm border border-blue-900/60 rounded-lg p-2.5 bg-slate-950 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <!-- populated dynamically -->
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-blue-200/80 mb-1">Quantidade a Adicionar</label>
+        <input type="number" id="stockAddQty" value="10" min="1" class="w-full text-sm border border-blue-900/60 rounded-lg p-2.5 bg-slate-950 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div class="flex justify-end space-x-3 pt-3">
+        <button onclick="closeStockModal()" class="px-4 py-2 text-xs font-semibold text-slate-400 hover:bg-slate-800 rounded-lg">Cancelar</button>
+        <button onclick="saveStockEntry()" class="px-4 py-2 text-xs font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-500 shadow-md shadow-blue-600/30">Confirmar Entrada</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- New User Modal -->
+  <div id="userModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-blue-900/60 rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4">
+      <h3 class="font-bold text-white text-lg flex items-center gap-2">
+        <i class="fa-solid fa-user-plus text-blue-400"></i> Cadastrar Novo Usuário
+      </h3>
+      <div>
+        <label class="block text-xs font-semibold text-blue-200/80 mb-1">Nome Completo</label>
+        <input type="text" id="newUserName" placeholder="Ex: Roberto Alves" class="w-full text-sm border border-blue-900/60 rounded-lg p-2.5 bg-slate-950 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-slate-600">
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-blue-200/80 mb-1">Login</label>
+        <input type="text" id="newUserLogin" placeholder="Ex: ralves" class="w-full text-sm border border-blue-900/60 rounded-lg p-2.5 bg-slate-950 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-slate-600">
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-blue-200/80 mb-1">Cargo</label>
+        <select id="newUserCargo" class="w-full text-sm border border-blue-900/60 rounded-lg p-2.5 bg-slate-950 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="Vendedor">Vendedor</option>
+          <option value="OperadorCaixa">Operador de Caixa</option>
+          <option value="Estoquista">Estoquista</option>
+          <option value="Administrador">Administrador</option>
+        </select>
+      </div>
+      <div class="flex justify-end space-x-3 pt-3">
+        <button onclick="closeUserModal()" class="px-4 py-2 text-xs font-semibold text-slate-400 hover:bg-slate-800 rounded-lg">Cancelar</button>
+        <button onclick="saveNewUser()" class="px-4 py-2 text-xs font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-500 shadow-md shadow-blue-600/30">Salvar Usuário</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script src="js/script.js"></script>
+</body>
+</html>

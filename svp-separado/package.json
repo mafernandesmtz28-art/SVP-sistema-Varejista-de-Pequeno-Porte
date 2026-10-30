@@ -1,0 +1,12 @@
+{
+  "name": "svp-comercio-varejista",
+  "version": "1.0.0",
+  "description": "Sistema Varejista de Pequeno Porte - frontend separado e servidor Node.js",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}
